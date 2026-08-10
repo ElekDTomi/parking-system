@@ -1,0 +1,66 @@
+version: '3.8'
+
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: sonrisa-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: root_password
+      MYSQL_DATABASE: sonrisa_db
+      MYSQL_USER: sonrisa_user
+      MYSQL_PASSWORD: sonrisa_password
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - sonrisa-network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  phpmyadmin:
+    image: phpmyadmin:latest
+    container_name: sonrisa-phpmyadmin
+    environment:
+      PMA_HOST: mysql
+      PMA_USER: sonrisa_user
+      PMA_PASSWORD: sonrisa_password
+      PMA_ROOT_PASSWORD: root_password
+    ports:
+      - "8080:80"
+    depends_on:
+      mysql:
+        condition: service_healthy
+    networks:
+      - sonrisa-network
+
+  backend:
+    build: .
+    container_name: sonrisa-backend
+    environment:
+      DB_HOST: mysql
+      DB_USER: root
+      DB_PASSWORD: password
+      DB_NAME: sonrisa_db
+      NODE_ENV: development
+    ports:
+      - "5000:5000"
+    depends_on:
+      mysql:
+        condition: service_healthy
+    volumes:
+      - .:/app
+      - /app/node_modules
+    networks:
+      - sonrisa-network
+    command: npm start
+
+volumes:
+  mysql_data:
+
+networks:
+  sonrisa-network:
+    driver: bridge
