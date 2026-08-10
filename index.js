@@ -34,24 +34,25 @@ app.get('/api/db-status', async (req, res) => {
   }
 })
 
-app.get('/api/users', async (req, res) => {
+app.get('/v1/getParkingSlots', async (req, res) => {
   try {
     const connection = await pool.getConnection()
-    const [rows] = await connection.query('SELECT * FROM users LIMIT 10')
+    const [rows] = await connection.query(
+      'SELECT parking_slots.*, customers.plate, customers.park_start_time, customers.park_end_time FROM parking_slots LEFT JOIN customers ON parking_slots.id = customers.slot_id WHERE customers.park_start_time < NOW() AND customers.park_end_time > NOW() ORDER BY parking_slots.id',
+    )
     connection.release()
-    res.status(200).json({ data: rows })
+    res.status(200).json(rows)
   } catch (error) {
-    res.status(500).json({ error: error.message })
+    res.status(500).json({ status: 'Failed to fetch parking slots', error: error.message })
   }
 })
 
 app.use((req, res) => {
-  res.status(404).json({ message: 'Route not found' })
+  res.status(404).json()
 })
 
 app.listen(PORT, () => {
   console.log(`🚀 Server is running on port ${PORT}`)
-  console.log(`📊 Database: ${process.env.DB_NAME || 'sonrisa_db'}`)
   console.log(`📱 Environment: ${process.env.NODE_ENV || 'development'}`)
 })
 
