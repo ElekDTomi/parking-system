@@ -154,6 +154,42 @@ app.post('/v1/reserveParkingSlot', async (req, res) => {
   }
 })
 
+app.delete('/v1/cancelReservation', async (req, res) => {
+  const { plate } = req.query
+
+  if (!plate) {
+    return res.status(400).json({
+      success: false,
+      message: 'Missing required field (plate)',
+    })
+  }
+
+  try {
+    const connection = await pool.getConnection()
+
+    const [rows] = await connection.query(
+      'UPDATE customers SET deleted = 1 WHERE plate = ? AND park_end_time > NOW()',
+      [plate],
+    )
+
+    connection.release()
+
+    if (rows.affectedRows === 0) {
+      return res
+        .status(404)
+        .json({ success: false, message: 'No reservation found for the given plate' })
+    }
+
+    res
+      .status(200)
+      .json({ success: true, message: rows.affectedRows + 'reservation cancelled successfully' })
+  } catch (error) {
+    res
+      .status(500)
+      .json({ success: false, message: 'Failed to cancel reservation', error: error.message })
+  }
+})
+
 app.use((req, res) => {
   res.status(404).json({ success: false, message: 'Route not found' })
 })
