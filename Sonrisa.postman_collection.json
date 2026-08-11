@@ -1,0 +1,123 @@
+{
+  "info": {
+    "_postman_id": "92a0f97b-24e5-4ec0-b725-59a76c6a4316",
+    "name": "Sonrisa",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "23238683"
+  },
+  "item": [
+    {
+      "name": "getParkingSlots",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:5000/v1/getParkingSlots?reserved=false",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "5000",
+          "path": [
+            "v1",
+            "getParkingSlots"
+          ],
+          "query": [
+            {
+              "key": "reserved",
+              "value": "false"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "reserveParkingSlot",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n    \"slot_id\": 12,\r\n    \"plate\": \"SA056UX\",\r\n    \"park_start_time\": \"2026-08-11 21:00\",\r\n    \"park_end_time\": \"2026-08-11 22:00\",\r\n    \"is_family\": false,\r\n    \"is_accessible\": true\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://localhost:5000/v1/reserveParkingSlot",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "5000",
+          "path": [
+            "v1",
+            "reserveParkingSlot"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "getParkingSlot",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:5000/v1/getParkingSlot?parkingSlot=2",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "5000",
+          "path": [
+            "v1",
+            "getParkingSlot"
+          ],
+          "query": [
+            {
+              "key": "parkingSlot",
+              "value": "2",
+              "type": "text"
+            },
+            {
+              "key": "plate",
+              "value": "SA056UX",
+              "disabled": true
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "cancelReservation",
+      "request": {
+        "method": "DELETE",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:5000/v1/cancelReservation?plate=SA056UX",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "5000",
+          "path": [
+            "v1",
+            "cancelReservation"
+          ],
+          "query": [
+            {
+              "key": "plate",
+              "value": "SA056UX"
+            }
+          ]
+        }
+      },
+      "response": []
+    }
+  ]
+}
