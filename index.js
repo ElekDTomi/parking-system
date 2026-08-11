@@ -44,6 +44,58 @@ app.get('/v1/getParkingSlots', async (req, res) => {
   }
 })
 
+app.get('/v1/getParkingSlot', async (req, res) => {
+  const { parkingSlot, plate } = req.query
+
+  if (parkingSlot && plate) {
+    return res.status(400).json({
+      success: false,
+      message: 'Please provide either parkingSlot or plate, not both',
+    })
+  }
+
+  if (!plate && !parkingSlot) {
+    return res.status(400).json({
+      success: false,
+      message: 'Missing required query parameter (parkingSlot or plate)',
+    })
+  }
+  let rows = []
+
+  try {
+    const connection = await pool.getConnection()
+    if (plate) {
+      ;[rows] = await connection.query(
+        'SELECT parking_slots.*, customers.plate, customers.park_start_time, customers.park_end_time FROM parking_slots LEFT JOIN customers ON parking_slots.id = customers.slot_id WHERE customers.plate = ? AND customers.deleted = 0',
+        [plate],
+      )
+      connection.release()
+      if (rows.length === 0) {
+        return res
+          .status(200)
+          .json({ success: false, message: 'No parking slot found for the given plate' })
+      }
+    }
+    if (parkingSlot) {
+      ;[rows] = await connection.query(
+        'SELECT parking_slots.*, customers.plate, customers.park_start_time, customers.park_end_time FROM parking_slots LEFT JOIN customers ON parking_slots.id = customers.slot_id WHERE parking_slots.id = ? AND customers.deleted = 0',
+        [parkingSlot],
+      )
+      connection.release()
+      if (rows.length === 0) {
+        return res
+          .status(200)
+          .json({ success: false, message: 'No parking slot found for the given ID' })
+      }
+    }
+    res.status(200).json(rows)
+  } catch (error) {
+    res
+      .status(500)
+      .json({ success: false, message: 'Failed to fetch parking slot', error: error.message })
+  }
+})
+
 app.post('/v1/reserveParkingSlot', async (req, res) => {
   const { slot_id, plate, park_start_time, park_end_time } = req.body
 
