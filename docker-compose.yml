@@ -3,6 +3,7 @@ services:
     image: mysql:8.0
     container_name: sonrisa-mysql
     environment:
+      TZ: ${TZ:-Europe/Budapest}
       MYSQL_ROOT_PASSWORD: root_password
       MYSQL_DATABASE: sonrisa_db
       MYSQL_USER: sonrisa_user
@@ -23,6 +24,7 @@ services:
     image: phpmyadmin:latest
     container_name: sonrisa-phpmyadmin
     environment:
+      TZ: ${TZ:-Europe/Budapest}
       PMA_HOST: mysql
       PMA_USER: sonrisa_user
       PMA_PASSWORD: sonrisa_password
@@ -39,6 +41,7 @@ services:
     build: .
     container_name: sonrisa-backend
     environment:
+      TZ: ${TZ:-Europe/Budapest}
       DB_HOST: mysql
       DB_USER: sonrisa_user
       DB_PASSWORD: sonrisa_password
