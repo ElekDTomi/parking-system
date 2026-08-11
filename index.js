@@ -97,12 +97,19 @@ app.get('/v1/getParkingSlot', async (req, res) => {
 })
 
 app.post('/v1/reserveParkingSlot', async (req, res) => {
-  const { slot_id, plate, park_start_time, park_end_time } = req.body
+  const { slot_id, plate, park_start_time, park_end_time, is_family, is_accessible } = req.body
 
   if (!slot_id || !plate || !park_start_time || !park_end_time) {
     return res.status(400).json({
       success: false,
       message: 'Missing required fields (slot_id, plate, park_start_time, park_end_time)',
+    })
+  }
+
+  if (new Date(park_start_time) >= new Date(park_end_time)) {
+    return res.status(400).json({
+      success: false,
+      message: 'Invalid time period. park_start_time must be before park_end_time.',
     })
   }
 
@@ -118,19 +125,26 @@ app.post('/v1/reserveParkingSlot', async (req, res) => {
   try {
     const connection = await pool.getConnection()
 
+    const allowedTypes = ['NORMAL']
+    if (is_family) allowedTypes.push('FAMILY')
+    if (is_accessible) allowedTypes.push('ACCESSIBLE')
+
     const [existingParkingSlot] = await connection.query(
-      'SELECT * FROM parking_slots WHERE id = ?',
-      [slot_id],
+      `SELECT * FROM parking_slots WHERE id = ? AND type IN (?)`,
+      [slot_id, allowedTypes],
     )
 
     if (existingParkingSlot.length === 0) {
       connection.release()
-      return res.status(200).json({ success: false, message: 'Parking slot not found' })
+      return res.status(200).json({
+        success: false,
+        message: 'Parking slot not found or bad attributes (is_family, is_accessible)',
+      })
     }
 
     const [existingReservation] = await connection.query(
-      'SELECT * FROM customers WHERE slot_id = ? AND park_end_time < ? AND deleted = 0',
-      [slot_id, park_end_time],
+      'SELECT * FROM customers WHERE slot_id = ? AND ? < park_end_time AND ? > park_start_time AND deleted = 0',
+      [slot_id, park_start_time, park_end_time],
     )
 
     if (existingReservation.length > 0) {
@@ -182,7 +196,7 @@ app.delete('/v1/cancelReservation', async (req, res) => {
 
     res
       .status(200)
-      .json({ success: true, message: rows.affectedRows + 'reservation cancelled successfully' })
+      .json({ success: true, message: rows.affectedRows + ' reservation cancelled successfully' })
   } catch (error) {
     res
       .status(500)

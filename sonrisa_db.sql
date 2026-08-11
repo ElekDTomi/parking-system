@@ -44,7 +44,7 @@ CREATE TABLE `customers` (
 CREATE TABLE `parking_slots` (
   `id` int NOT NULL,
   `number` int UNSIGNED NOT NULL,
-  `type` enum('NORMAL','ACCESSBILE','FAMILY','RESERVED') NOT NULL
+  `type` enum('NORMAL','ACCESSIBLE','FAMILY','RESERVED') NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 --
@@ -94,15 +94,15 @@ ALTER TABLE `customers`
 -- Sample data for `parking_slots` (50 rows)
 -- ----------------------------
 INSERT INTO `parking_slots` (`number`, `type`) VALUES
-(1,'NORMAL'),(2,'NORMAL'),(3,'NORMAL'),(4,'NORMAL'),(5,'ACCESSBILE'),
+(1,'NORMAL'),(2,'NORMAL'),(3,'NORMAL'),(4,'NORMAL'),(5,'ACCESSIBLE'),
 (6,'FAMILY'),(7,'NORMAL'),(8,'NORMAL'),(9,'NORMAL'),(10,'RESERVED'),
-(11,'NORMAL'),(12,'NORMAL'),(13,'NORMAL'),(14,'NORMAL'),(15,'ACCESSBILE'),
+(11,'NORMAL'),(12,'NORMAL'),(13,'NORMAL'),(14,'NORMAL'),(15,'ACCESSIBLE'),
 (16,'FAMILY'),(17,'NORMAL'),(18,'NORMAL'),(19,'NORMAL'),(20,'RESERVED'),
-(21,'NORMAL'),(22,'NORMAL'),(23,'NORMAL'),(24,'NORMAL'),(25,'ACCESSBILE'),
+(21,'NORMAL'),(22,'NORMAL'),(23,'NORMAL'),(24,'NORMAL'),(25,'ACCESSIBLE'),
 (26,'FAMILY'),(27,'NORMAL'),(28,'NORMAL'),(29,'NORMAL'),(30,'RESERVED'),
-(31,'NORMAL'),(32,'NORMAL'),(33,'NORMAL'),(34,'NORMAL'),(35,'ACCESSBILE'),
+(31,'NORMAL'),(32,'NORMAL'),(33,'NORMAL'),(34,'NORMAL'),(35,'ACCESSIBLE'),
 (36,'FAMILY'),(37,'NORMAL'),(38,'NORMAL'),(39,'NORMAL'),(40,'RESERVED'),
-(41,'NORMAL'),(42,'NORMAL'),(43,'NORMAL'),(44,'NORMAL'),(45,'ACCESSBILE'),
+(41,'NORMAL'),(42,'NORMAL'),(43,'NORMAL'),(44,'NORMAL'),(45,'ACCESSIBLE'),
 (46,'FAMILY'),(47,'NORMAL'),(48,'NORMAL'),(49,'NORMAL'),(50,'RESERVED');
 
 -- ----------------------------
