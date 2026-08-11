@@ -1,138 +1,84 @@
-# Sonrisa - Docker Compose Stack
+# Parkolóhely kezelő rendszer
 
-Egy teljes fejlesztési stack MySQL szerverrel, phpMyAdmin felülettel és Node.js Express backendel.
+## Rendszerterv
 
-## 📋 Előfeltételek
+A parkolóhely kezelő rendszer feladatát egy Node.JS Express szerveroldal látja el, mely JSON formátumú REST API-ként működik. HTTP kéréseken keresztül kommunikál. Az adatbázis szerepét pedig egy relációs adatbázis tölti be(MySQL). A phpMyAdmin az adatbázis adminisztrációját és az adatok manuális kezelését és ellenőrzését szolgálja.
 
-- Docker
-- Docker Compose
+A könnyű telepíthetőség érdekében Docker containerekben futnak az alkalmazás különböző részei. 3 konténert tartalmaz:
 
-## 🚀 Gyors indítás
+- A node.js futtatására alkalmas környezetet
+- A MySQL szerver konténere
+- A phpMyAdmin felület konténere
 
-### 1. Projekt indítása
+A szerveroldal a kliensalkalmazásoktól kapott kéréseket dolgozza fel és ad rá választ. Kiemelten fontos, hogy egy parkolóhelyre lévő foglalásoknál időbeli fedés ne történjen meg. A kliensek a foglalásaik le is tudják mondani, amennyiben arra van szükségük. A kliensek rendszám alapján azonosítják maguk, nincs egyéb autentikációs folyamat.
+Beépítésre került több típusú parkolóhely. Lehet családi parkoló, mozgássérült parkoló, fenntartott parkoló és normál parkoló. Ezeket a kliensoldal közli a szerverrel, hogy mire jogosult a felhasználó. Ez később bővíthető egyéb megerősítésekkel is. (Pl. rokkantság hivatalos dokumentummal való igazolása)
 
-Egyetlen paranccsal indítsd el az egész alkalmazást:
+Az adatbázisban tárolásra kerülnek a létező parkolóhelyek és azok típusai (id, number, type), illetve a parkolóhely foglalások adatai. (id, slot_id, plate, park_start_date, park_end_date, created_at, deleted)
 
-```bash
-docker compose up -d
-```
+## API-leírás
 
-A `-d` flag a háttérben futtatja a containereket.
+Az alábbi endpointok az `index.js` alapján érhetők el.
 
-### 2. Leállítás
+### 1. Parkolóhelyek lekérdezése
 
-```bash
-docker compose down
-```
+**GET** `/v1/getParkingSlots`
 
-Az adatok megmaradnak a `mysql_data` volume-ban.
+Az összes parkolóhely információjának lekérdezése a jelenleg ott parkoló jármű információival.
 
-### 3. Leállítás és adatok törlése
+| Paraméter  | Típus                              | Kötelező | Leírás                                                                                                                          |
+| ---------- | ---------------------------------- | -------- | ------------------------------------------------------------------------------------------------------------------------------- |
+| `reserved` | `string` (`'true'` vagy `'false'`) | Nem      | Ha `true`, csak az aktuálisan foglalt helyeket adja vissza. Ha `false` vagy nincs megadva, az összes parkolóhelyet adja vissza. |
 
-```bash
-docker compose down -v
-```
+### 2. Egy parkolóhely lekérdezése
 
-## 🌐 Hozzáférés az alkalmazásokhoz
+Egy adott parkolóhely lekérdezése akár azonosítió szám, akár rendszám alapján.
 
-- **Express Backend**: http://localhost:5000
-  - Health check: http://localhost:5000/health
-  - DB Status: http://localhost:5000/api/db-status
-  - Users: http://localhost:5000/api/users
+**GET** `/v1/getParkingSlot`
 
-- **phpMyAdmin**: http://localhost:8080
-  - Felhasználó: `sonrisa_user`
-  - Jelszó: `sonrisa_password`
-  - Root jelszó: `root_password`
+| Paraméter     | Típus                  | Kötelező | Leírás                                |
+| ------------- | ---------------------- | -------- | ------------------------------------- |
+| `parkingSlot` | `string` vagy `number` | Nem\*    | A parkolóhely azonosítója.            |
+| `plate`       | `string`               | Nem\*    | A rendszám alapján keresett foglalás. |
 
-- **MySQL**: `localhost:3306`
-  - Host: `mysql` (Docker network-ből)
-  - Felhasználó: `sonrisa_user`
-  - Jelszó: `sonrisa_password`
-  - Adatbázis: `sonrisa_db`
+\* A két paraméter közül legalább az egyik kötelező, de egyszerre nem adhatók meg.
 
-## 📝 Konfigurációs fájlok
+### 3. Parkolóhely lefoglalása
 
-### `docker-compose.yml`
-A Docker containerek orchestrációját definiálja.
+Egy parkolóhely lefoglalása.
 
-### `Dockerfile`
-A Node.js Express alkalmazás Docker image-jét építi fel.
+**POST** `/v1/reserveParkingSlot`
 
-### `package.json`
-A Node.js függőségek listája.
+| Paraméter         | Típus                  | Kötelező | Leírás                                                                        |
+| ----------------- | ---------------------- | -------- | ----------------------------------------------------------------------------- |
+| `slot_id`         | `number` vagy `string` | Igen     | A foglalni kívánt parkolóhely azonosítója.                                    |
+| `plate`           | `string`               | Igen     | A jármű rendszáma.                                                            |
+| `park_start_time` | `string` (dátum/idő)   | Igen     | A foglalás kezdete, például ISO 8601 formátumban. MOST < IDŐ \|\| MOST >= IDŐ |
+| `park_end_time`   | `string` (dátum/idő)   | Igen     | A foglalás vége, például ISO 8601 formátumban. MOST < IDŐ                     |
+| `is_family`       | `boolean`              | Nem      | Családi parkolóhelyre jogosultságot jelez.                                    |
+| `is_accessible`   | `boolean`              | Nem      | Akadálymentes parkolóhelyre jogosultságot jelez.                              |
 
-### `index.js`
-Az Express szerver fő fájlja.
+### 4. Foglalás lemondása
 
-### `.env.example`
-Az environment változók sablona. Szükség esetén másold `.env` fájlként.
+**DELETE** `/v1/cancelReservation`
 
-## 🔧 Fejlesztés
+| Paraméter | Típus    | Kötelező | Leírás                                                         |
+| --------- | -------- | -------- | -------------------------------------------------------------- |
+| `plate`   | `string` | Igen     | Annak a foglalásnak a rendszáma, amelyet le szeretnél mondani. |
 
-### Valós idejű módosítások
+### Általános megjegyzések
 
-Az Express alkalmazás módosításai automatikusan frissülnek a containerben (volume mount miatt).
+- Az API JSON választ ad vissza.
+- A `park_start_time` és `park_end_time` időpontoknál a backend időbeli átfedést is ellenőriz.
+- A `is_family` és `is_accessible` értékek alapján a rendszer a jogosult parkolóhelytípusokat szűri.
+- A lekérdezésekben a törölt foglalások `deleted = 1` jelölést kapnak, és nem jelennek meg aktív foglalásként.
 
-### Új npm csomag telepítése
+## Felhasználói kézikönyv
 
-```bash
-docker compose exec backend npm install új-csomag-neve
-```
+Szükséges környezet: Docker
 
-### Backend konténer naplói
+A projekt elindításának metódusa: `docker compose up -d`
 
-```bash
-docker compose logs -f backend
-```
+A containerek elindulását követően a következő útvonalakon elérhetőek a szolgáltatások:
 
-### MySQL konténer naplói
-
-```bash
-docker compose logs -f mysql
-```
-
-## 🗄️ Adatbázis inicializálása
-
-Az SQL scriptek futtatásához SSH-zz be a MySQL containerbe:
-
-```bash
-docker compose exec mysql mysql -u sonrisa_user -psonrisa_password sonrisa_db < script.sql
-```
-
-## 🐛 Hibaelhárítás
-
-### "Port already in use"
-Módosítsd a `docker-compose.yml` fájlban a port mappingeket:
-- MySQL: `3306:3306` → `3307:3306`
-- phpMyAdmin: `8080:80` → `8081:80`
-- Backend: `5000:5000` → `5001:5000`
-
-### MySQL Connection Refused
-Várd meg, amíg a MySQL healthcheck sikeressé válik:
-```bash
-docker compose logs mysql
-```
-
-### Backend konténer kilépett
-Ellenőrizd az npm telepítést:
-```bash
-docker compose up backend
-```
-
-## 📦 Konténerek
-
-- **sonrisa-mysql**: MySQL 8.0 adatbázis szerver
-- **sonrisa-phpmyadmin**: phpMyAdmin webfelület
-- **sonrisa-backend**: Node.js Express alkalmazás
-
-## 📚 További információ
-
-- [Docker Compose dokumentáció](https://docs.docker.com/compose/)
-- [Express.js dokumentáció](https://expressjs.com/)
-- [MySQL dokumentáció](https://dev.mysql.com/doc/)
-- [phpMyAdmin dokumentáció](https://www.phpmyadmin.net/)
-
----
-
-**Készen állsz!** 🎉 Az alkalmazás most elérhető a fenti URL-eken.
+- http://localhost:5000/ - Node.JS szerveroldal
+- http://localhost:8080/ - phpMyAdmin kezelőfelület
