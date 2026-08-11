@@ -190,7 +190,7 @@ app.delete('/v1/cancelReservation', async (req, res) => {
 
     if (rows.affectedRows === 0) {
       return res
-        .status(404)
+        .status(200)
         .json({ success: false, message: 'No reservation found for the given plate' })
     }
 
@@ -208,9 +208,11 @@ app.use((req, res) => {
   res.status(404).json({ success: false, message: 'Route not found' })
 })
 
-app.listen(PORT, () => {
-  console.log(`🚀 Server is running on port ${PORT}`)
-  console.log(`📱 Environment: ${process.env.NODE_ENV || 'development'}`)
-})
+if (require.main === module) {
+  app.listen(PORT, () => {
+    console.log(`🚀 Server is running on port ${PORT}`)
+    console.log(`📱 Environment: ${process.env.NODE_ENV || 'development'}`)
+  })
+}
 
 module.exports = app

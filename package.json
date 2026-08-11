@@ -5,18 +5,26 @@
   "main": "index.js",
   "scripts": {
     "start": "node index.js",
-    "dev": "nodemon index.js"
+    "dev": "npm test && nodemon index.js",
+    "test": "jest --runInBand",
+    "test:watch": "jest --watch"
   },
-  "keywords": ["express", "mysql", "backend"],
+  "keywords": [
+    "express",
+    "mysql",
+    "backend"
+  ],
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "express": "^4.18.2",
-    "mysql2": "^3.6.0",
+    "cors": "^2.8.5",
     "dotenv": "^16.0.3",
-    "cors": "^2.8.5"
+    "express": "^4.18.2",
+    "mysql2": "^3.6.0"
   },
   "devDependencies": {
-    "nodemon": "^2.0.22"
+    "jest": "^30.4.2",
+    "nodemon": "^2.0.22",
+    "supertest": "^7.2.2"
   }
 }

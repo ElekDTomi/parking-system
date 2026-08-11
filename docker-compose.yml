@@ -11,6 +11,7 @@ services:
     ports:
       - '3306:3306'
     volumes:
+      - ./sonrisa_db.sql:/docker-entrypoint-initdb.d/sonrisa_db.sql
       - mysql_data:/var/lib/mysql
     networks:
       - sonrisa-network
